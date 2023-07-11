@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Library.Models;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.Models
+namespace Library
 {
-    public class Library
+    public class LibraryService
     {
         private List<Book> library { get; set; }
+
+        public LibraryService()
+        {
+            this.library = new List<Book>();
+        }
 
         public void AddBookIntoLibrary(Book book)
         {
@@ -35,7 +41,7 @@ namespace Library.Models
                 throw new Exception("Book is not available");
             }
 
-            Book selectedBook = availableBooks.Select(book => book).Single();
+            Book selectedBook = availableBooks.First();
             selectedBook.IsBorrowed = true;
             selectedBook.RentalStartDate = DateTime.Now;
 
@@ -45,7 +51,6 @@ namespace Library.Models
         public float ReturnRentedBook(Book book)
         {
             book.IsBorrowed = false;
-            AddBookIntoLibrary(book);
 
             return ComputeRentalPrice(book);
             
