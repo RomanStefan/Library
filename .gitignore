@@ -3,6 +3,9 @@
 
 
 # User-specific files
+bin/
+obj/
+Debug/
 *.suo
 *.user
 *.userosscache
