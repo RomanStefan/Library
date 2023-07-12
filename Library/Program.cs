@@ -36,7 +36,7 @@ namespace Library
 
 
             //borrow the book "title1"
-            var rentedBook = library.BorrowBook("title1");
+            var rentedBook = library.RentABook("title1");
             //test the functionality to return the available books after we rent the book "title1"
             library.ReturnAvailableBooks();
             //test the functionality to return number of available books for "title1"  after we rent the book "title1" 

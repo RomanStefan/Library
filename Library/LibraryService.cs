@@ -4,12 +4,13 @@ using System.Linq;
 using Library.Models;
 using System.Text;
 using System.Threading.Tasks;
+using Library.Interfaces;
 
 namespace Library
 {
-    public class LibraryService
+    public class LibraryService : ILibraryService
     {
-        private List<Book> library { get; set; }
+        public List<Book> library { get; set; }
 
         public LibraryService()
         {
@@ -31,7 +32,7 @@ namespace Library
             return library.Where(book => book.BookTitle == title && book.IsBorrowed == false).Count();
         }
 
-        public Book BorrowBook(string title)
+        public Book RentABook(string title)
         {
 
             List<Book> availableBooks = library.Where(book => book.BookTitle == title && book.IsBorrowed == false).ToList();
