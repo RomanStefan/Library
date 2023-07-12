@@ -19,16 +19,26 @@ namespace Library
 
         public void AddBookIntoLibrary(Book book)
         {
+            #region Safe Guards
+            if (book == null)
+                throw new Exception("Argument book cannot be null.");
+            #endregion
+
             library.Add(book);
         }
 
-        public List<Book> ReturnAvailableBooks()
+        public List<Book> GetAvailableBooks()
         {
             return library.Where(book => book.IsBorrowed == false).ToList();
         }
 
-        public int ReturnNumberOfAvailableBooksForSpecificBook(string title)
+        public int GetNumberOfAvailableBooksForSpecificBook(string title)
         {
+            #region Safe Guards
+            if (string.IsNullOrWhiteSpace(title))
+                throw new Exception("Argument title cannot be null or whitespaces.");
+            #endregion
+
             return library.Where(book => book.BookTitle == title && book.IsBorrowed == false).Count();
         }
 

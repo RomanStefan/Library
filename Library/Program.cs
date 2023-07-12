@@ -29,18 +29,18 @@ namespace Library
             library.AddBookIntoLibrary(book5);
 
             //test the functionality to return the available books
-            library.ReturnAvailableBooks();
+            library.GetAvailableBooks();
 
             //test the functionality to return number of available books for "title1" 
-            library.ReturnNumberOfAvailableBooksForSpecificBook("title1");
+            library.GetNumberOfAvailableBooksForSpecificBook("title1");
 
 
             //borrow the book "title1"
             var rentedBook = library.RentABook("title1");
             //test the functionality to return the available books after we rent the book "title1"
-            library.ReturnAvailableBooks();
+            library.GetAvailableBooks();
             //test the functionality to return number of available books for "title1"  after we rent the book "title1" 
-            library.ReturnNumberOfAvailableBooksForSpecificBook("title1");
+            library.GetNumberOfAvailableBooksForSpecificBook("title1");
 
             //Return the rented book
             library.ReturnRentedBook(rentedBook);

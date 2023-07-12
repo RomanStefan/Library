@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using Library;
 using Library.Interfaces;
 using Library.Models;
 using NSubstitute;
@@ -10,11 +11,11 @@ namespace LibraryTests
 {
     public class LibraryServiceTests
     {
-        private ILibraryService libraryServiceFake; 
+        private LibraryService libraryServiceFake;
 
         public LibraryServiceTests()
         {
-            libraryServiceFake = Substitute.For<ILibraryService>();
+            libraryServiceFake = new LibraryService();
         }
 
         private void CreateTestLibrary()
@@ -40,12 +41,84 @@ namespace LibraryTests
         {
             // Arrange
             Book book1 = new Book("title1", "isbn1", 11);
+
             // Act
             libraryServiceFake.AddBookIntoLibrary(book1);
 
             // Assert 
-            var availableBooks = libraryServiceFake.ReturnAvailableBooks();
-            libraryServiceFake.ReturnAvailableBooks().Count().Should().Be(1);
+            libraryServiceFake.library.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void LibraryService_AddBookIntoLibrary_BookObjectIsNull_ExceptionWithExpectedMessageIsThrow()
+        {
+            // Arrange
+            Book book1 = null;
+
+            // Act
+            var exception = Record.Exception(() => libraryServiceFake.AddBookIntoLibrary(book1));
+
+            // Assert 
+            exception.Message.Should().Be("Argument book cannot be null.");
+        }
+
+        [Fact]
+        public void LibraryService_ReturnAvailableBooks_LibraryHaveSomeBooksRented_AvailableNumberOfBooksIsTheRightOne()
+        {
+            // Arrange
+            CreateTestLibrary();
+            libraryServiceFake.library[0].IsBorrowed = true;
+            libraryServiceFake.library[1].IsBorrowed = true;
+
+
+            // Act
+            var availableBooks = libraryServiceFake.GetAvailableBooks();
+
+            // Assert 
+            availableBooks.Count().Should().Be(3);
+        }
+
+        [Fact]
+        public void LibraryService_GetNumberOfAvailableBooksForSpecificBook_LibraryContainsTwoBooksForThisTitleButOneIsRented_ReturnedNumberShouldBe1()
+        {
+            // Arrange
+            CreateTestLibrary();
+            libraryServiceFake.library[0].IsBorrowed = true;
+
+            // Act
+            var numberOfAvailableBooks = libraryServiceFake.GetNumberOfAvailableBooksForSpecificBook("title1");
+
+            // Assert 
+            Assert.Equal(numberOfAvailableBooks, 1);
+        }
+
+        [Fact]
+        public void LibraryService_GetNumberOfAvailableBooksForSpecificBook_LibraryDoNotContainExpectedBook_ReturnedNumberShouldBe0()
+        {
+            // Arrange
+            CreateTestLibrary();
+
+            // Act
+            var numberOfAvailableBooks = libraryServiceFake.GetNumberOfAvailableBooksForSpecificBook("title5");
+
+            // Assert 
+            Assert.Equal(numberOfAvailableBooks, 0);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("    ")]
+        public void LibraryService_GetNumberOfAvailableBooksForSpecificBook_BookTitleIsNullOrWhitespaces_ExceptionWithExpectedMessageIsThrow(string bookTitle)
+        {
+            // Arrange
+            CreateTestLibrary();
+
+            // Act
+            var exception = Record.Exception(() => libraryServiceFake.GetNumberOfAvailableBooksForSpecificBook(bookTitle));
+
+            // Assert 
+            exception.Message.Should().Be("Argument title cannot be null or whitespaces.");
         }
     }
 }
