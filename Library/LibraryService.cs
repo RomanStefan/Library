@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Library.Models;
-using System.Text;
-using System.Threading.Tasks;
 using Library.Interfaces;
 
 namespace Library
@@ -44,10 +42,9 @@ namespace Library
 
         public Book RentABook(string title)
         {
-
             List<Book> availableBooks = library.Where(book => book.BookTitle == title && book.IsBorrowed == false).ToList();
 
-            if(availableBooks == null)
+            if(availableBooks.Count == 0)
             {
                 throw new Exception("Book is not available");
             }
@@ -61,10 +58,14 @@ namespace Library
 
         public float ReturnRentedBook(Book book)
         {
+            #region Safe Guards
+            if (book == null)
+                throw new Exception("Argument book cannot be null.");
+            #endregion
+
             book.IsBorrowed = false;
 
             return ComputeRentalPrice(book);
-            
         }
 
         private float ComputeRentalPrice(Book book)
@@ -73,7 +74,7 @@ namespace Library
             int rentaldays = (RentalEndDate - book.RentalStartDate).Days;
 
             if (rentaldays > 14)
-                return book.RentPrice + (rentaldays - 14) / 100 * book.RentPrice;
+                return book.RentPrice + (rentaldays - 14) / 100f * book.RentPrice;
 
             return book.RentPrice;
         }

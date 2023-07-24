@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using FluentAssertions;
 using Library;
-using Library.Interfaces;
 using Library.Models;
-using NSubstitute;
+using FluentAssertions;
 using Xunit;
 
 namespace LibraryTests
@@ -119,6 +117,153 @@ namespace LibraryTests
 
             // Assert 
             exception.Message.Should().Be("Argument title cannot be null or whitespaces.");
+        }
+
+        [Fact]
+        public void LibraryService_RentABook_LibraryContainExpectedBook_RentedBookTitleShouldBeExpectedOne()
+        {
+            // Arrange
+            CreateTestLibrary();
+            var expectedBookTitle = "title1";
+
+            // Act
+            var rentedBook = libraryServiceFake.RentABook("title1");
+
+            // Assert 
+            Assert.Equal(rentedBook.BookTitle, expectedBookTitle);
+        }
+
+        [Fact]
+        public void LibraryService_RentABook_RentABook_AvailableBooksAfterABookIsRentedIsTheRightNumber()
+        {
+            // Arrange
+            CreateTestLibrary();
+            var totalBooksAvailableBeforeRent = libraryServiceFake.GetAvailableBooks().Count;
+
+            // Act
+            var rentedBook = libraryServiceFake.RentABook("title1");
+
+            // Assert 
+            var totalBooksAvailableAfterRent = libraryServiceFake.GetAvailableBooks().Count;
+            totalBooksAvailableAfterRent.Should().Be(totalBooksAvailableBeforeRent - 1);
+        }
+
+        [Fact]
+        public void LibraryService_RentABook_RentABook_BookIsMarkedAsRented()
+        {
+            // Arrange
+            CreateTestLibrary();
+
+            // Act
+            var rentedBook = libraryServiceFake.RentABook("title1");
+
+            // Assert 
+            rentedBook.IsBorrowed.Should().BeTrue();
+        }
+
+        [Fact]
+        public void LibraryService_RentABook_RentABook_RentedStartdayIsExpectedOne()
+        {
+            // Arrange
+            CreateTestLibrary();
+            string expectedRentedStartDate = DateTime.Now.ToString("MM/dd/yyyy");
+
+            // Act
+            var rentedBook = libraryServiceFake.RentABook("title1");
+
+            // Assert 
+            var rentedStartDate = rentedBook.RentalStartDate.ToString("MM/dd/yyyy");
+            Assert.Equal(rentedStartDate, expectedRentedStartDate);
+        }
+
+        [Fact]
+        public void LibraryService_RentABook_BookTitleIsValidButBookIsAlreadyRented_ExceptionWithExpectedMessageIsThrow()
+        {
+            // Arrange
+            CreateTestLibrary();
+            libraryServiceFake.library[1].IsBorrowed = true;
+
+            // Act
+            var exception = Record.Exception(() => libraryServiceFake.RentABook("title2"));
+
+            // Assert 
+            exception.Message.Should().Be("Book is not available");
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("    ")]
+        public void LibraryService_RentABook_BookTitleIsNullOrWhitespaces_ExceptionWithExpectedMessageIsThrow(string bookTitle)
+        {
+            // Arrange
+            CreateTestLibrary();
+
+            // Act
+            var exception = Record.Exception(() => libraryServiceFake.RentABook(bookTitle));
+
+            // Assert 
+            exception.Message.Should().Be("Book is not available");
+        }
+
+        [Fact]
+        public void LibraryService_ReturnRentedBook_ReturnTheBook_IsBorrowedFieldIsChangedAfterReturnOfTheBook()
+        {
+            // Arrange
+            CreateTestLibrary();
+            Book rentedBook = libraryServiceFake.library[1];
+            rentedBook.IsBorrowed = true;
+
+            // Act
+            libraryServiceFake.ReturnRentedBook(rentedBook);
+
+            // Assert 
+            libraryServiceFake.library[1].IsBorrowed.Should().BeFalse();
+        }
+
+        [Fact]
+        public void LibraryService_ReturnRentedBook_ReturnTheBookIn14DaysInterval_ReturnedPriceIsTheStandardPrice()
+        {
+            // Arrange
+            CreateTestLibrary();
+            Book rentedBook = libraryServiceFake.library[1];
+            rentedBook.IsBorrowed = true;
+            rentedBook.RentalStartDate = DateTime.Today.AddDays(-10);
+
+            // Act
+            var price = libraryServiceFake.ReturnRentedBook(rentedBook);
+
+            // Assert 
+            price.Should().Be(rentedBook.RentPrice);
+        }
+
+        [Fact]
+        public void LibraryService_ReturnRentedBook_ReturnTheBookAfter14DaysInterval_ReturnedPriceIsTheRightOne()
+        {
+            // Arrange
+            CreateTestLibrary();
+            Book rentedBook = libraryServiceFake.library[1];
+            rentedBook.IsBorrowed = true;
+            rentedBook.RentalStartDate = DateTime.Today.AddDays(-20);
+
+            // Act
+            var price = libraryServiceFake.ReturnRentedBook(rentedBook);
+
+            // Assert 
+            price.Should().Be((float)14.84);
+        }
+
+        [Fact]
+        public void LibraryService_ReturnRentedBook_BookObjectIsNull_ExceptionWithExpectedMessageIsThrow()
+        {
+            // Arrange
+            Book book = null;
+
+            // Act
+            var exception = Record.Exception(() => libraryServiceFake.ReturnRentedBook(book));
+
+            // Assert 
+            exception.Message.Should().Be("Argument book cannot be null.");
         }
     }
 }
