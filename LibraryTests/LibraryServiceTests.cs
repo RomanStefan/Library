@@ -2,36 +2,41 @@
 using System.Linq;
 using Library;
 using Library.Models;
+using Library.Interfaces;
 using FluentAssertions;
+using NSubstitute;
 using Xunit;
+
 
 namespace LibraryTests
 {
     public class LibraryServiceTests
     {
-        private LibraryService libraryServiceFake;
+        private LibraryService libraryService;
+        private IBookValidator bookValidatorFake;
 
         public LibraryServiceTests()
         {
-            libraryServiceFake = new LibraryService();
+            bookValidatorFake = Substitute.For<IBookValidator>();
+            libraryService = new LibraryService(bookValidatorFake);
         }
 
         private void CreateTestLibrary()
         {
 
             //define the books from library
-            Book book1 = new Book("title1", "isbn1", 11);
+            Book book1 = new Book("title1","isbn1", 11);
             Book book2 = new Book("title2", "isbn2", 14);
             Book book3 = new Book("title3", "isbn3", 21);
             Book book4 = new Book("title4", "isbn4", 22);
             Book book5 = new Book("title1", "isbn1", 11);
 
             //add the books to library
-            libraryServiceFake.AddBookIntoLibrary(book1);
-            libraryServiceFake.AddBookIntoLibrary(book2);
-            libraryServiceFake.AddBookIntoLibrary(book3);
-            libraryServiceFake.AddBookIntoLibrary(book4);
-            libraryServiceFake.AddBookIntoLibrary(book5);
+            libraryService.AddBookIntoLibrary(book1);
+            libraryService.AddBookIntoLibrary(book2);
+            libraryService.AddBookIntoLibrary(book3);
+            libraryService.AddBookIntoLibrary(book4);
+            libraryService.AddBookIntoLibrary(book5);
         }
 
         [Fact]
@@ -41,10 +46,10 @@ namespace LibraryTests
             Book book1 = new Book("title1", "isbn1", 11);
 
             // Act
-            libraryServiceFake.AddBookIntoLibrary(book1);
+            libraryService.AddBookIntoLibrary(book1);
 
             // Assert 
-            libraryServiceFake.library.Count().Should().Be(1);
+            libraryService.library.Count().Should().Be(1);
         }
 
         [Fact]
@@ -54,7 +59,7 @@ namespace LibraryTests
             Book book1 = null;
 
             // Act
-            var exception = Record.Exception(() => libraryServiceFake.AddBookIntoLibrary(book1));
+            var exception = Record.Exception(() => libraryService.AddBookIntoLibrary(book1));
 
             // Assert 
             exception.Message.Should().Be("Argument book cannot be null.");
@@ -65,12 +70,12 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            libraryServiceFake.library[0].IsBorrowed = true;
-            libraryServiceFake.library[1].IsBorrowed = true;
+            libraryService.library[0].IsBorrowed = true;
+            libraryService.library[1].IsBorrowed = true;
 
 
             // Act
-            var availableBooks = libraryServiceFake.GetAvailableBooks();
+            var availableBooks = libraryService.GetAvailableBooks();
 
             // Assert 
             availableBooks.Count().Should().Be(3);
@@ -81,10 +86,10 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            libraryServiceFake.library[0].IsBorrowed = true;
+            libraryService.library[0].IsBorrowed = true;
 
             // Act
-            var numberOfAvailableBooks = libraryServiceFake.GetNumberOfAvailableBooksForSpecificBook("title1");
+            var numberOfAvailableBooks = libraryService.GetNumberOfAvailableBooksForSpecificBook("title1");
 
             // Assert 
             Assert.Equal(numberOfAvailableBooks, 1);
@@ -97,7 +102,7 @@ namespace LibraryTests
             CreateTestLibrary();
 
             // Act
-            var numberOfAvailableBooks = libraryServiceFake.GetNumberOfAvailableBooksForSpecificBook("title5");
+            var numberOfAvailableBooks = libraryService.GetNumberOfAvailableBooksForSpecificBook("title5");
 
             // Assert 
             Assert.Equal(numberOfAvailableBooks, 0);
@@ -113,7 +118,7 @@ namespace LibraryTests
             CreateTestLibrary();
 
             // Act
-            var exception = Record.Exception(() => libraryServiceFake.GetNumberOfAvailableBooksForSpecificBook(bookTitle));
+            var exception = Record.Exception(() => libraryService.GetNumberOfAvailableBooksForSpecificBook(bookTitle));
 
             // Assert 
             exception.Message.Should().Be("Argument title cannot be null or whitespaces.");
@@ -127,7 +132,7 @@ namespace LibraryTests
             var expectedBookTitle = "title1";
 
             // Act
-            var rentedBook = libraryServiceFake.RentABook("title1");
+            var rentedBook = libraryService.RentABook("title1");
 
             // Assert 
             Assert.Equal(rentedBook.BookTitle, expectedBookTitle);
@@ -138,13 +143,13 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            var totalBooksAvailableBeforeRent = libraryServiceFake.GetAvailableBooks().Count;
+            var totalBooksAvailableBeforeRent = libraryService.GetAvailableBooks().Count;
 
             // Act
-            var rentedBook = libraryServiceFake.RentABook("title1");
+            var rentedBook = libraryService.RentABook("title1");
 
             // Assert 
-            var totalBooksAvailableAfterRent = libraryServiceFake.GetAvailableBooks().Count;
+            var totalBooksAvailableAfterRent = libraryService.GetAvailableBooks().Count;
             totalBooksAvailableAfterRent.Should().Be(totalBooksAvailableBeforeRent - 1);
         }
 
@@ -155,7 +160,7 @@ namespace LibraryTests
             CreateTestLibrary();
 
             // Act
-            var rentedBook = libraryServiceFake.RentABook("title1");
+            var rentedBook = libraryService.RentABook("title1");
 
             // Assert 
             rentedBook.IsBorrowed.Should().BeTrue();
@@ -169,7 +174,7 @@ namespace LibraryTests
             string expectedRentedStartDate = DateTime.Now.ToString("MM/dd/yyyy");
 
             // Act
-            var rentedBook = libraryServiceFake.RentABook("title1");
+            var rentedBook = libraryService.RentABook("title1");
 
             // Assert 
             var rentedStartDate = rentedBook.RentalStartDate.ToString("MM/dd/yyyy");
@@ -181,10 +186,10 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            libraryServiceFake.library[1].IsBorrowed = true;
+            libraryService.library[1].IsBorrowed = true;
 
             // Act
-            var exception = Record.Exception(() => libraryServiceFake.RentABook("title2"));
+            var exception = Record.Exception(() => libraryService.RentABook("title2"));
 
             // Assert 
             exception.Message.Should().Be("Book is not available");
@@ -200,7 +205,7 @@ namespace LibraryTests
             CreateTestLibrary();
 
             // Act
-            var exception = Record.Exception(() => libraryServiceFake.RentABook(bookTitle));
+            var exception = Record.Exception(() => libraryService.RentABook(bookTitle));
 
             // Assert 
             exception.Message.Should().Be("Book is not available");
@@ -211,14 +216,14 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            Book rentedBook = libraryServiceFake.library[1];
+            Book rentedBook = libraryService.library[1];
             rentedBook.IsBorrowed = true;
 
             // Act
-            libraryServiceFake.ReturnRentedBook(rentedBook);
+            libraryService.ReturnRentedBook(rentedBook);
 
             // Assert 
-            libraryServiceFake.library[1].IsBorrowed.Should().BeFalse();
+            libraryService.library[1].IsBorrowed.Should().BeFalse();
         }
 
         [Fact]
@@ -226,12 +231,12 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            Book rentedBook = libraryServiceFake.library[1];
+            Book rentedBook = libraryService.library[1];
             rentedBook.IsBorrowed = true;
             rentedBook.RentalStartDate = DateTime.Today.AddDays(-10);
 
             // Act
-            var price = libraryServiceFake.ReturnRentedBook(rentedBook);
+            var price = libraryService.ReturnRentedBook(rentedBook);
 
             // Assert 
             price.Should().Be(rentedBook.RentPrice);
@@ -242,12 +247,12 @@ namespace LibraryTests
         {
             // Arrange
             CreateTestLibrary();
-            Book rentedBook = libraryServiceFake.library[1];
+            Book rentedBook = libraryService.library[1];
             rentedBook.IsBorrowed = true;
             rentedBook.RentalStartDate = DateTime.Today.AddDays(-20);
 
             // Act
-            var price = libraryServiceFake.ReturnRentedBook(rentedBook);
+            var price = libraryService.ReturnRentedBook(rentedBook);
 
             // Assert 
             price.Should().Be((float)14.84);
@@ -260,7 +265,7 @@ namespace LibraryTests
             Book book = null;
 
             // Act
-            var exception = Record.Exception(() => libraryServiceFake.ReturnRentedBook(book));
+            var exception = Record.Exception(() => libraryService.ReturnRentedBook(book));
 
             // Assert 
             exception.Message.Should().Be("Argument book cannot be null.");

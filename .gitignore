@@ -39,9 +39,11 @@ Debug/
 *.svclog
 *.scc
 *.txt
+*.testlog
 /Library/packages/System.Threading.Tasks.Extensions.4.5.2/ref
 /Library/packages
 /Library/.vs/Library/v16/TestStore/0/000.testlog
 /Library/.vs/Library/v16/TestStore/0/testlog.manifest
 /Library/.vs/Library/v16/TestStore/0/002.testlog
 /Library/.vs/Library/v16/TestStore/0/003.testlog
+/Library/.vs/Library/v16/TestStore/0/004.testlog

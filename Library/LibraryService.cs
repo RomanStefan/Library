@@ -9,10 +9,12 @@ namespace Library
     public class LibraryService : ILibraryService
     {
         public List<Book> library { get; set; }
+        private readonly IBookValidator bookValidator;
 
-        public LibraryService()
+        public LibraryService(IBookValidator bookValidator)
         {
             this.library = new List<Book>();
+            this.bookValidator = bookValidator;
         }
 
         public void AddBookIntoLibrary(Book book)
@@ -21,6 +23,13 @@ namespace Library
             if (book == null)
                 throw new Exception("Argument book cannot be null.");
             #endregion
+
+            var validationResult = bookValidator.ValidateBook(book);
+
+            if(validationResult.IsValid == false)
+            {
+                throw new Exception(validationResult.Errors[0].ErrorMessage);
+            }
 
             library.Add(book);
         }

@@ -1,4 +1,7 @@
-﻿using Library.Models;
+﻿using SimpleInjector;
+using Library.Interfaces;
+using Library.Models;
+using Library.Validator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +12,16 @@ namespace Library
 {
     class Program
     {
+        private static Container container;
+
         static void Main(string[] args)
         {
+            ConfigureDependencyInjection();
+
+            var bookValidator = container.GetInstance<IBookValidator>();
+
             //define the library
-            var library = new LibraryService();
+            var library = new LibraryService(bookValidator);
 
             //define the books from library
             Book book1 = new Book("title1", "isbn1", 11);
@@ -45,5 +54,15 @@ namespace Library
             //Return the rented book
             library.ReturnRentedBook(rentedBook);
         }
+
+        private static void ConfigureDependencyInjection()
+        {
+            container = new Container();
+
+            // Register all the application's dependencies that will be injected
+            container.Register<IBookValidator, BookValidator>();
+            container.Verify();
+        }
+
     }
 }
